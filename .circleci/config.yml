@@ -1,0 +1,40 @@
+version: 2.1
+
+
+working_directory: &working_directory
+  ~/tmp
+
+dockerhub_login: &dockerhub_login
+  run:
+    name: Login to dockerhub
+    command: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+
+
+jobs:
+  publish_tag:
+    machine: true
+    working_directory: ~/tmp
+    steps:
+    - checkout
+    - *dockerhub_login
+    - run:
+        name: "Publish image"
+        command: make publish DOCKER_REPO=adharatech DOCKER_IMAGE_TAG=$CIRCLE_TAG
+
+
+workflows:
+  version: 2
+  main-workflow:
+    jobs:
+    - publish_tag:
+        context: adharatech-global
+        filters:
+          branches:
+            ignore: /.*/
+          tags:
+            only:
+              - /.*/
+
+
+orbs:
+  sonarcloud: sonarsource/sonarcloud@1.0.1
