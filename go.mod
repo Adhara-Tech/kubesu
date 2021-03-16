@@ -1,4 +1,4 @@
-module github.com/adharaprojects/kubesu
+module github.com/adhara-tech/kubesu
 
 go 1.14
 
