@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/adharaprojects/kubesu/cmds"
+	"github.com/adhara-tech/kubesu/cmds"
 	"github.com/spf13/cobra"
 )
 
