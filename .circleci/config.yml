@@ -21,11 +21,27 @@ jobs:
         name: "Publish image"
         command: make publish DOCKER_REPO=adharatech DOCKER_IMAGE_TAG=$CIRCLE_TAG
 
+  build_docker:
+    machine: true
+    working_directory: ~/tmp
+    steps:
+    - checkout
+    - *dockerhub_login
+    - run:
+        name: "Build image"
+        command: make build_in_docker DOCKER_REPO=adharatech
+
 
 workflows:
   version: 2
   main-workflow:
     jobs:
+    - build_docker:
+        context: adharatech-global
+        filters:
+          tags:
+            ignore: /.*/
+
     - publish_tag:
         context: adharatech-global
         filters:

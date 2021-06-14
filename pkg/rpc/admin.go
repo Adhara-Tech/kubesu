@@ -1,8 +1,6 @@
 package rpc
 
 import (
-	"net/url"
-
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
