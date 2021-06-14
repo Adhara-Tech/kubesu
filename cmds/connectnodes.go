@@ -71,15 +71,15 @@ func retrieveNodes() ([]types.Node, error) {
 	for i, pod := range pods.Items {
 		nodeIP := pod.Status.PodIP
 
-		rpcClient, err := rpc.NewAdminApi(nodeIP, rpcPort)
+		rpcClient, err := rpc.NewNetApi(nodeIP, rpcPort)
 		if err != nil {
-			fmt.Printf("WARNING: %v\n", err)
+			fmt.Printf("WARNING - Cannot connect to '%s' json-rpc endpoint: %v\n", pod.Name, err)
 			continue
 		}
 
 		nodeInfo, err := rpcClient.NodeInfo()
 		if err != nil {
-			fmt.Printf("WARNING: %v\n", err)
+			fmt.Printf("WARNING - Caanot get nodeInfo of pod '%s': %v\n", pod.Name, err)
 			continue
 		}
 
@@ -103,7 +103,7 @@ func connectNodes(allNodes []types.Node) error {
 		fmt.Printf("Checking node [%s]\n", node.Name)
 		err := connectMissingPeers(node, allNodes)
 		if err != nil {
-			fmt.Printf("WARNING: %v\n", err)
+			fmt.Printf("WARNING - failed to connect nodes for pod '%s': %v\n", node.Name, err)
 			continue
 		}
 

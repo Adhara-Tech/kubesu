@@ -7,7 +7,7 @@ import (
 )
 
 type AdminApi struct {
-	rpcClient *rpc.Client
+	rpcClient rpcClient
 }
 
 func NewAdminApi(ip string, port string) (*AdminApi, error) {
@@ -28,17 +28,7 @@ func (api *AdminApi) NodeInfo() (*NodeInfo, error) {
 		return nil, err
 	}
 
-	url, err := url.Parse(nodeInfo.Enode)
-	if err != nil {
-		return nil, err
-	}
-
-	node := NodeInfo{
-		Pubkey: url.User.String(),
-		Port:   url.Port(),
-	}
-
-	return &node, nil
+	return parseEnode(nodeInfo.Enode)
 }
 
 func (api *AdminApi) Peers() ([]NodeInfo, error) {
