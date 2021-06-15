@@ -1,0 +1,83 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: validator-nodekey
+type: Opaque
+stringData:
+  key: 0315c9adce270b738b7325fae9e03f2c1a7179813f8d06355fbec6d4996af114
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: validator-besu
+  labels:
+    app: validator-besu
+  annotations:
+    besu.kubernetes.io/config-strategy: default
+spec:
+  selector:
+    matchLabels:
+      app: validator-besu
+  serviceName: validator-besu-headless
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: validator-besu
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: besu
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsUser: 1000
+            runAsGroup: 1000
+          image: hyperledger/besu:21.1.7
+          args:
+            - --config-file
+            - /etc/besu/besu.conf
+            - --genesis-file
+            - /etc/besu/genesis.json
+            - --data-path
+            - /var/lib/besu/db
+            - --identity=validator
+            - --node-private-key-file
+            - /var/lib/besu/key
+          livenessProbe:
+            httpGet:
+              path: /liveness?minPeers=0
+              port: 8545
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /readiness?minPeers=0
+              port: 8545
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          volumeMounts:
+          - mountPath: /var/lib/besu/db
+            name: besu-db
+          - name: besu-config
+            mountPath: /etc/besu
+          - name: besu-nodekey
+            mountPath: /var/lib/besu/key
+            subPath: key
+      volumes:
+      - name: besu-config
+        configMap:
+          name: besu-config
+      - name: besu-nodekey
+        secret:
+          secretName: validator-nodekey
+  volumeClaimTemplates:
+  - metadata:
+      name: besu-db
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi

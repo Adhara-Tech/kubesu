@@ -1,0 +1,83 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: client-nodekey
+type: Opaque
+stringData:
+  key: ae6ae8e5ccbfb04590405997ee2d52d2b330726137b875053c36d94e974d162f
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: client-besu
+  labels:
+    app: client-besu
+  annotations:
+    besu.kubernetes.io/config-strategy: default
+spec:
+  selector:
+    matchLabels:
+      app: client-besu
+  serviceName: client-besu-headless
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: client-besu
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: besu
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsUser: 1000
+            runAsGroup: 1000
+          image: hyperledger/besu:21.1.7
+          args:
+            - --config-file
+            - /etc/besu/besu.conf
+            - --genesis-file
+            - /etc/besu/genesis.json
+            - --data-path
+            - /var/lib/besu/db
+            - --identity=client
+            - --node-private-key-file
+            - /var/lib/besu/key
+          livenessProbe:
+            httpGet:
+              path: /liveness?minPeers=0
+              port: 8545
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /readiness?minPeers=0
+              port: 8545
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          volumeMounts:
+          - mountPath: /var/lib/besu/db
+            name: besu-db
+          - name: besu-config
+            mountPath: /etc/besu
+          - name: besu-nodekey
+            mountPath: /var/lib/besu/key
+            subPath: key
+      volumes:
+      - name: besu-config
+        configMap:
+          name: besu-config
+      - name: besu-nodekey
+        secret:
+          secretName: client-nodekey
+  volumeClaimTemplates:
+  - metadata:
+      name: besu-db
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi

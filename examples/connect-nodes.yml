@@ -1,0 +1,49 @@
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: connect-nodes
+  labels:
+    batch: connect-nodes
+spec:
+  # every 5 minutes
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: kubesu
+            image: adharatech/kubesu:v0.0.1-rc5
+            command: ["/kubesu"]
+            args: ["connectNodes", "--namespace", "default", "--selector", "app in (validator-besu, client-besu)", "--rpcport", "8545"]
+          serviceAccountName: kubesu
+          restartPolicy: Never
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kubesu
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: kubesu-readonly
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kubesu-readonly
+subjects:
+- kind: ServiceAccount
+  name: kubesu
+roleRef:
+  kind: Role
+  name: kubesu-readonly
+  apiGroup: rbac.authorization.k8s.io
