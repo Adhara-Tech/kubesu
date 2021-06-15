@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.0.1-rc5
+- Use [net_enode](https://besu.hyperledger.org/en/stable/Reference/API-Methods/#net_enode) method to retrieve Enode address from Besu Pod
+
 ## 0.0.1-rc4
 - Use more OSS-friendly user in Docker image
 

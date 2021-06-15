@@ -28,3 +28,9 @@ type rpcNodeInfo struct {
 	Ports      map[string]int `ports:"id"`
 	Protocols  interface{}    `json:"protocols"`
 }
+
+type rpcNetEnode string
+
+type rpcClient interface {
+	Call(result interface{}, method string, args ...interface{}) error
+}

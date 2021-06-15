@@ -2,6 +2,11 @@ FROM golang:1.14.0-buster as builder
 
 WORKDIR /workdir
 
+COPY ./go.mod /workdir/go.mod
+COPY ./go.sum /workdir/go.sum
+
+RUN go mod download
+
 COPY ./ /workdir/
 
 RUN go build main.go
