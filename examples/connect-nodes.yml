@@ -1,5 +1,5 @@
 ---
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: connect-nodes
@@ -16,7 +16,7 @@ spec:
         spec:
           containers:
           - name: kubesu
-            image: adharatech/kubesu:v0.0.1-rc5
+            image: adharatech/kubesu:v0.0.1-rc6
             command: ["/kubesu"]
             args: ["connectNodes", "--namespace", "default", "--selector", "app in (validator-besu, client-besu)", "--rpcport", "8545"]
           serviceAccountName: kubesu
