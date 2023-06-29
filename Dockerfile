@@ -1,4 +1,6 @@
-FROM golang:1.14.0-buster as builder
+FROM golang:1.19.0-alpine as builder
+
+RUN apk add --update build-base
 
 WORKDIR /workdir
 
@@ -11,13 +13,13 @@ COPY ./ /workdir/
 
 RUN go build main.go
 
-FROM debian:buster
+FROM alpine:3.18.2
 
 COPY --from=builder /workdir/main /kubesu
 
 RUN chmod +x /kubesu
 
-RUN groupadd --gid 1000 kubesu && useradd --uid 1000 --gid kubesu --shell /bin/bash --create-home kubesu
+RUN addgroup -g 1000 -S kubesu && adduser -u 1000 -G kubesu -S kubesu
 
 USER kubesu
 
